@@ -191,8 +191,18 @@ function edd_free_downloads_compress_files( $files = array(), $download_id = 0 )
 	if ( class_exists( 'ZipArchive' ) ) {
 		$upload_dir = wp_upload_dir();
 		$upload_dir = $upload_dir['basedir'] . '/edd-free-downloads-cache';
-		$zip_name   = apply_filters( 'edd_free_downloads_zip_name', strtolower( str_replace( ' ', '-', get_bloginfo( 'name' ) ) ) . '-bundle-' . $download_id . '.zip' );
-		$zip_file   = $upload_dir . '/' . $zip_name;
+		$zip_name   = strtolower( str_replace( ' ', '-', get_bloginfo( 'name' ) ) ) . '-bundle-' . $download_id;
+
+		$bundle_id = '';
+
+		foreach( $files as $file_name => $file_path ) {
+			$bundle_id .= $file_name;
+		}
+
+		$bundle_id = wp_hash( $bundle_id, 'nonce' );
+
+		$zip_file = apply_filters( 'edd_free_downloads_zip_name', $zip_name . '-' . $bundle_id . '.zip' );
+		$zip_file = $upload_dir . '/' . $zip_file;
 
 		// If caching is disabled, make sure file is deleted
 		if ( file_exists( $zip_file ) && edd_get_option( 'edd_free_downloads_disable_cache', false ) ) {
@@ -237,7 +247,7 @@ function edd_free_downloads_compress_files( $files = array(), $download_id = 0 )
  * @param       string $download_url The URL of the file to download
  * @return      void
  */
-function edd_free_downloads_download_file( $download_url ) {
+function edd_free_downloads_download_file( $download_url, $hosted ) {
 	// If no file found, bail
 	if ( ! $download_url ) {
 		edd_die( __( 'An unknown error occurred, please try again!', 'edd-free-downloads' ), __( 'Oops!', 'edd-free-downloads' ) );
@@ -285,6 +295,10 @@ function edd_free_downloads_download_file( $download_url ) {
 		 */
 		$method = 'direct';
 
+	}
+
+	if( $hosted === 'dropbox' || $hosted == 'amazon' ) {
+		$method = 'redirect';
 	}
 
 	switch ( $method ) :
@@ -369,11 +383,8 @@ function edd_free_downloads_fetch_remote_file( $file_path, $hosted ) {
 			}
 		}
 
-		$file_path = $GLOBALS['edd_s3']->get_s3_url( $file_path, 25 );
+		return $GLOBALS['edd_s3']->get_s3_url( $file_path, 25 );
 
-		$fileName = substr( $file_path, 0, strpos( $file_path, '?' ) );
-		$fileName = explode( '/', $fileName );
-		$fileName = end( $fileName );
 	} elseif ( $hosted == 'dropbox' ) {
 		if ( class_exists( 'EDDDropboxFileStore' ) ) {
 			add_filter( 'edd_file_download_method', 'edd_free_downloads_set_download_method' );
@@ -381,10 +392,8 @@ function edd_free_downloads_fetch_remote_file( $file_path, $hosted ) {
 
 			$dfs = new EDDDropboxFileStore();
 
-			$file_path = $dfs->getDownloadURL( $file_path );
+			return $dfs->getDownloadURL( $file_path );
 
-			$fileName = explode( '/', $file_path );
-			$fileName = end( $fileName );
 		} else {
 			return false;
 		}
