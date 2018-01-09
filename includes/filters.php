@@ -82,9 +82,9 @@ function edd_free_downloads_purchase_download_form( $purchase_form, $args ) {
 		$purchase_form     = '';
 		$form_id           = 'edd_purchase_' . $download_id;
 		$download_label    = esc_attr( edd_get_option( 'edd_free_downloads_button_label', __( 'Download Now', 'edd-free-downloads' ) ) );
-		$add_to_cart_label = edd_get_option( 'add_to_cart_text', __( 'Add to Cart', 'easy-digital-downloads' ) );
-		$checkout_label    = edd_get_option( 'checkout_label', __( 'Purchase', 'easy-digital-downloads' ) );
-		$buy_now_label     = edd_get_option( 'buy_now_text', __( 'Buy Now', 'easy-digital-downloads' ) );
+		$add_to_cart_label = edd_get_option( 'add_to_cart_text', __( 'Add to Cart', 'edd-free-downloads' ) );
+		$checkout_label    = edd_get_option( 'checkout_label', __( 'Purchase', 'edd-free-downloads' ) );
+		$buy_now_label     = edd_get_option( 'buy_now_text', __( 'Buy Now', 'edd-free-downloads' ) );
 		$button_style      = ( array_key_exists( 'style', $args ) && isset( $args['style'] ) ) ? $args['style'] : edd_get_option( 'button_style', 'button' );
 		$button_color      = ( array_key_exists( 'color', $args ) && isset( $args['color'] ) ) ? $args['color'] : edd_get_option( 'checkout_color', 'blue' );
 		$button_class      = ( array_key_exists( 'class', $args ) && isset( $args['class'] ) ) ? $args['class'] : '';
