@@ -47,12 +47,39 @@ function edd_free_downloads_remove_optin() {
 
 		// MailChimp
 		if ( class_exists( 'EDD_MailChimp' ) ) {
-			global $edd_mc;
 
-			if ( isset( $_POST['edd_free_download_optin'] ) ) {
-				$edd_mc->subscribe_email( $user_info );
+			global $edd_mc, $eddmc; // $edd_mc is pre 3.0, $eddmc is 3.0+
+
+			if ( ! empty( $eddmc ) ) {
+
+				remove_action( 'edd_complete_purchase', array( $eddmc::$checkout, 'completed_purchase_signup' ), 10, 3 );
+				
+				if ( ! isset( $_POST['edd_free_download_optin'] ) ) {
+					return;
+				}
+
+				$download = new EDD_MailChimp_Download( absint( $_POST['edd_free_download_id'] ) );
+				$preferences = $download->subscription_preferences();
+
+				foreach( $preferences as $preference ) {
+
+					$list = new EDD_MailChimp_List( $preference['remote_id'] );
+					$options = array( 'interests' => $preference['interests'] );
+					$options['double_opt_in'] = false;
+
+					$subscribed = $list->subscribe( $user_info, $options );
+
+				}
+
 			} else {
-				remove_action( 'edd_complete_download_purchase', array( $edd_mc, 'completed_download_purchase_signup' ) );
+
+				// Running pre MailChimp 3.0
+				if ( isset( $_POST['edd_free_download_optin'] ) ) {
+					$edd_mc->subscribe_email( $user_info );
+				} else {
+					remove_action( 'edd_complete_download_purchase', array( $edd_mc, 'completed_download_purchase_signup' ) );
+				}
+
 			}
 		}
 
